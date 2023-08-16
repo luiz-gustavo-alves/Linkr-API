@@ -1,6 +1,6 @@
 import db from "../database/db.connection.js";
 import {
-    checkHashtagsInDatabase,
+    getHashtagsInDatabase,
     verifyNewHashtags,
     insertHashtagsFromPost,
     deleteHastagsInDatabase
@@ -12,7 +12,7 @@ const getUniqueHashtags = async () => {
         `SELECT "hashtagID"
          FROM "hashtagPosts"
          GROUP BY "hashtagID"
-         HAVING COUNT(*) = 1;
+         HAVING COUNT(DISTINCT "postID") = 1;
         `
     );
 
@@ -21,12 +21,18 @@ const getUniqueHashtags = async () => {
 
 const createAndInsertHashtags = async (hashtags, postID) => {
 
-    const checkResult = checkHashtagsInDatabase(hashtags); 
-    const queryResult = await db.query(checkResult.query, checkResult.queryParams);
+    const getResult = getHashtagsInDatabase(hashtags); 
+    const getQueryResult = await db.query(getResult.query, getResult.queryParams);
 
-    const hashtagIDs = queryResult.rows.map(queryResult => queryResult.id);
+    const insertHashtags = {};
+    for (let i = 0; i < getQueryResult.rows.length; i++) {
+        
+        const hashtag = getQueryResult.rows[i].hashtag;
+        const ID = getQueryResult.rows[i].id;
+        insertHashtags[hashtag] = ID;
+    }
 
-    const { newHashtags } = verifyNewHashtags(queryResult.rows, hashtags);
+    const { newHashtags } = verifyNewHashtags(getQueryResult.rows, hashtags);
     if (newHashtags.length > 0) {
 
         for (let i = 0; i < newHashtags.length; i++) {
@@ -42,11 +48,11 @@ const createAndInsertHashtags = async (hashtags, postID) => {
             );
 
             const hashtagID = createdHashtag.rows[0].id;
-            hashtagIDs.push(hashtagID);
+            insertHashtags[hashtag] = hashtagID;
         }
     }
 
-    const insertQueryResult = insertHashtagsFromPost(hashtagIDs, postID);
+    const insertQueryResult = insertHashtagsFromPost(hashtags, insertHashtags, postID);
     await db.query(insertQueryResult.query, insertQueryResult.queryParams);
 }
 
@@ -58,7 +64,7 @@ const deleteHashtags = async (postID) => {
          FROM "hashtagPosts"
          JOIN hashtags
             ON hashtags.id = "hashtagPosts"."hashtagID"
-         WHERE "postID" = $1
+         WHERE "postID" = $1;
         `, [postID]
     );
 
@@ -80,11 +86,11 @@ const deleteHashtags = async (postID) => {
             }
         })
 
-        const queryResult = deleteHastagsInDatabase(hashtagsIDs, postID, uniqueHashtagsIDs);
-        await db.query(queryResult.firstQuery, queryResult.firstQueryParams);
+        const deleteQueryResult = deleteHastagsInDatabase(hashtagsIDs, postID, uniqueHashtagsIDs);
+        await db.query(deleteQueryResult.firstQuery, deleteQueryResult.firstQueryParams);
 
         if (uniqueHashtagsIDs.length > 0) {
-            await db.query(queryResult.secondQuery, queryResult.secondQueryParams);
+            await db.query(deleteQueryResult.secondQuery, deleteQueryResult.secondQueryParams);
         }
     }
 }

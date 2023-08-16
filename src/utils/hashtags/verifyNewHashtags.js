@@ -13,6 +13,7 @@ function verifyNewHashtags (hashtagsQuery, hashtags) {
         const hashtag = hashtags[i];
         if (!hashTable[hashtag]) {
             newHashtags.push(hashtag);
+            hashTable[hashtag] = true;
         }
     }
 

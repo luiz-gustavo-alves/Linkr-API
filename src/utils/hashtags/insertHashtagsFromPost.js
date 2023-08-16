@@ -1,12 +1,14 @@
-function insertHashtagsFromPost (hashtagsIDs, postID) {
+function insertHashtagsFromPost (hashtags, insertHashtags, postID) {
 
     let query = 'INSERT INTO "hashtagPosts" ("hashtagID", "postID") VALUES ';
     const queryParams = [];
 
-    const hashtagsLen = hashtagsIDs.length;
-    hashtagsIDs.forEach((id, index) => {
+    const hashtagsLen = hashtags.length;
+    hashtags.forEach((hashtag, index) => {
 
-        queryParams.push(id);
+        const hashtagID = insertHashtags[hashtag];
+
+        queryParams.push(hashtagID);
         queryParams.push(postID);
         
         if (index + 1 === hashtagsLen) {

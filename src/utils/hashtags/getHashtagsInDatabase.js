@@ -1,10 +1,12 @@
-function checkHashtagsInDatabase (hashtags) {
+function getHashtagsInDatabase (hashtags) {
 
     let query = 'SELECT hashtags.id, hashtags.hashtag FROM hashtags WHERE hashtag IN (';
     const queryParams = [];
 
-    const hashtagsLen = hashtags.length;
-    hashtags.forEach((hashtag, index) => {
+    const uniqueHashtags = [...new Set(hashtags)];
+
+    const hashtagsLen = uniqueHashtags.length;
+    uniqueHashtags.forEach((hashtag, index) => {
 
         queryParams.push(hashtag);
 
@@ -18,4 +20,4 @@ function checkHashtagsInDatabase (hashtags) {
     return { query, queryParams };
 }
 
-export default checkHashtagsInDatabase;
+export default getHashtagsInDatabase;
