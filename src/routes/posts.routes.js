@@ -14,7 +14,7 @@ import { postsSchema } from "../schemas/posts.schema.js";
 const postsRouter = Router();
 
 postsRouter.post("/create-post", schemaValidation(postsSchema), getHashtags, createPost);
-postsRouter.put("/update-post", updatePost);
-postsRouter.delete("/delete-post", deletePost);
+postsRouter.put("/update-post/:postID", schemaValidation(postsSchema), getHashtags, updatePost);
+postsRouter.delete("/delete-post/:postID", deletePost);
 
 export default postsRouter;
