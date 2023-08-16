@@ -1,8 +1,96 @@
 import db from "../database/db.connection.js";
+import {
+    getHashtagsInDatabase,
+    verifyNewHashtags,
+    insertHashtagsFromPost,
+    deleteHastagsInDatabase
+} from "../utils/hashtags/index.js";
 
-function hashtagsList() {
+const getHashtagsByPost = async (postID) => {
+
+    const resultHashtagPost = await db.query(
+        `SELECT * FROM "hashtagPosts"
+         WHERE "postID" = $1;
+        `, [postID]
+    );
+
+    return resultHashtagPost;
+}
+
+const getUniqueHashtags = async () => {
+
+    const uniqueHashtags = await db.query(
+        `SELECT "hashtagID"
+         FROM "hashtagPosts"
+            GROUP BY "hashtagID"
+         HAVING COUNT(DISTINCT "postID") = 1;
+        `
+    );
+
+    return uniqueHashtags.rows;
+}
+
+const createAndInsertHashtags = async (hashtags, postID) => {
+
+    const getResult = getHashtagsInDatabase(hashtags); 
+    const getQueryResult = await db.query(getResult.query, getResult.queryParams);
+
+    const insertHashtags = {};
+    getQueryResult.rows.forEach(result => insertHashtags[result.hashtag] = result.id);
+
+    const { newHashtags } = verifyNewHashtags(getQueryResult.rows, hashtags);
+    if (newHashtags.length > 0) {
+
+        for (let i = 0; i < newHashtags.length; i++) {
+
+            const hashtag = newHashtags[i];
+            const createdHashtag = await db.query(
+                `INSERT INTO hashtags 
+                    (hashtag)
+                 VALUES 
+                    ($1)
+                 RETURNING id;
+                `, [hashtag]
+            );
+
+            const hashtagID = createdHashtag.rows[0].id;
+            insertHashtags[hashtag] = hashtagID;
+        }
+    }
+
+    const insertQueryResult = insertHashtagsFromPost(hashtags, insertHashtags, postID);
+    await db.query(insertQueryResult.query, insertQueryResult.queryParams);
+}
+
+const deleteHashtags = async (resultHashtagPost, postID) => {
+
+    const hashtagsIDs = [];
+    resultHashtagPost.rows.forEach(result => {
+        if (!hashtagsIDs.includes(result.hashtagID)) {
+            hashtagsIDs.push(result.hashtagID);
+        }
+    });
+
+    const uniqueHashtags = await getUniqueHashtags();
+
+    const uniqueHashtagsIDs = [];
+    uniqueHashtags.forEach(singleHashtag => {
+        if (hashtagsIDs.includes(singleHashtag.hashtagID)) {
+            uniqueHashtagsIDs.push(singleHashtag.hashtagID);
+        }
+    })
+
+    const deleteQueryResult = deleteHastagsInDatabase(hashtagsIDs, postID, uniqueHashtagsIDs);
+    await db.query(deleteQueryResult.firstQuery, deleteQueryResult.firstQueryParams);
+
+    if (uniqueHashtagsIDs.length > 0) {
+        await db.query(deleteQueryResult.secondQuery, deleteQueryResult.secondQueryParams);
+    }
+}
+
+async function hashtagsList() {
     //Aqui estou retornando um array com {id, hashtag, cont} em que temos o nome e o id da hashtag e o número de posts para ela.
-    const result = db.query(`
+    const result = await db.query(`
     SELECT h."id" AS "id", h."hashtag" AS "hashtag", COUNT(hp."postID") AS "cont"
     FROM "hashtags" h
     LEFT JOIN "hashtagPosts" hp ON h."id" = hp."hashtagID"
@@ -10,8 +98,10 @@ function hashtagsList() {
     ORDER BY "cont" DESC
     LIMIT 10;
     `);
+
     return result;
 }
+
 const exampleResult = [
     {
       hashtag: "example_hashtag",
@@ -45,8 +135,8 @@ const exampleResult = [
     },
   ];
   
-function hashtagPosts(id) {
-    const result = db.query(`
+async function hashtagPosts(id) {
+    const result = await db.query(`
     SELECT
     h."hashtag", p."id" AS "postID", p."description", p."URL", u."id" AS "userID", u."name", u."imageURL",
     COALESCE(l."likes_count", 0) AS "likes",
@@ -64,7 +154,7 @@ function hashtagPosts(id) {
         SELECT "userID"
         FROM "likes" l2
         WHERE l2."postID" = p."id"
-        ORDER BY l2."createdAt" DESC
+        GROUP BY l2."id"
         LIMIT 3
     ) ll ON TRUE
     LEFT JOIN "users" u2 ON ll."userID" = u2."id"
@@ -74,12 +164,11 @@ function hashtagPosts(id) {
     return result;
 }
 
-function ex () {
-    const result = db.query(``);
-    return result;
-}
-
 const hashtagsService = {
+    getHashtagsByPost,
+    getUniqueHashtags,
+    createAndInsertHashtags,
+    deleteHashtags,
     hashtagsList,
     hashtagPosts
 }
