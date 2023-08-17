@@ -135,8 +135,8 @@ const exampleResult = [
     },
   ];
   
-function hashtagPosts(hashtag) {
-    const result = db.query(`
+async function hashtagPosts(hashtag) {
+    const result = await db.query(`
     SELECT
     h."hashtag",
     json_agg(
@@ -175,6 +175,7 @@ function hashtagPosts(hashtag) {
     WHERE h."hashtag" = $1
     GROUP BY h."hashtag";
     `, [hashtag]);
+    console.log(result.rows);
     return result;
 }
 
