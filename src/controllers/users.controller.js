@@ -1,7 +1,16 @@
 import usersService from "../services/users.service.js";
 
-export const getPosts = async (req, res) => {
-    res.send(req.body);
+export const getTimelinePosts = async (req, res) => {
+
+    const { offset } = req.query;
+    
+    try {
+        const posts = await usersService.getTimelinePosts(offset);
+        res.send(posts.rows);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 }
 
 export const getPostsByUser = async (req, res) => {
