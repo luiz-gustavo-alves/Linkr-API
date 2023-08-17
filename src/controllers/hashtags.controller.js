@@ -1,8 +1,9 @@
-import hashtagsService from "../services/hashtags.service";
+import hashtagsService from "../services/hashtags.service.js";
 
 export async function getHashtagsList (req, res){
     try{
-        const result = hashtagsService.hashtagsList();
+        const result = await hashtagsService.hashtagsList();
+        console.log(result.rows);
         res.status(200).send(result.rows);
     } catch (err) {
         res.status(500).send({ message: "Error getting hashtags list: " + err.message });
