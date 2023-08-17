@@ -45,14 +45,36 @@ const exampleResult = [
     },
   ];
   
-function hashtagPosts(id) {
+function hashtagPosts(hashtag) {
     const result = db.query(`
     SELECT
-    h."hashtag", p."id" AS "postID", p."description", p."URL", u."id" AS "userID", u."name", u."imageURL",
-    COALESCE(l."likes_count", 0) AS "likes",
-    COALESCE(arr_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[]) AS "lastLikes"
-    FROM "hashtagPosts" hp
-    JOIN "hashtags" h ON hp."hashtagID" = h."id"
+    h."hashtag",
+    json_agg(
+        json_build_object(
+            'postID', p."id",
+            'description', p."description",
+            'URL', p."URL",
+            'user', json_build_object(
+                'id', u."id",
+                'name', u."name",
+                'img', u."imageURL"
+            ),
+            'likes', COALESCE(l."likes_count", 0),
+            'lastLikes', (
+                SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
+                FROM (
+                    SELECT "userID"
+                    FROM "likes" l2
+                    WHERE l2."postID" = p."id"
+                    ORDER BY l2."id" DESC
+                    LIMIT 3
+                ) l3
+                JOIN "users" u2 ON l3."userID" = u2."id"
+            )
+        )
+    ) AS posts
+    FROM "hashtags" h
+    JOIN "hashtagPosts" hp ON h."id" = hp."hashtagID"
     JOIN "posts" p ON hp."postID" = p."id"
     JOIN "users" u ON p."userID" = u."id"
     LEFT JOIN (
@@ -60,17 +82,9 @@ function hashtagPosts(id) {
         FROM "likes"
         GROUP BY "postID"
     ) l ON p."id" = l."postID"
-    LEFT JOIN LATERAL (
-        SELECT "userID"
-        FROM "likes" l2
-        WHERE l2."postID" = p."id"
-        ORDER BY l2."createdAt" DESC
-        LIMIT 3
-    ) ll ON TRUE
-    LEFT JOIN "users" u2 ON ll."userID" = u2."id"
-    WHERE hp."hashtagID" = $1
-    ORDER BY p."createdAt" DESC;
-    `, [id]);
+    WHERE h."hashtag" = $1
+    GROUP BY h."hashtag";
+    `, [hashtag]);
     return result;
 }
 
