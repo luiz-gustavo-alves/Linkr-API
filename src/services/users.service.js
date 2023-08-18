@@ -1,6 +1,6 @@
 import db from "../database/db.connection.js";
 
-const getTimelinePosts = async (offset) => {
+const getTimelinePosts = async (offset, userID) => {
 
     if (!offset) {
         offset = 0;
@@ -29,21 +29,26 @@ const getTimelinePosts = async (offset) => {
         `, [currentOffset]
     );
 
-    const postsList = posts.rows.map(post => ({
-        "postID": post.id,
-        "description": post.description,
-        "URL": post.URL,
-        "URL_title": post.URL_title,
-        "URL_description": post.URL_description,
-        "URL_image": post.URL_image,
-        "user": {
-            "id": post.userID,
-            "name": post.name,
-            "img": post.imageURL
-        },
-        "createdAt": post.createdAt,
-        "likes": Number(post.likes)
-    }));
+    const postsList = posts.rows.map(post => {
+
+        const postOwner = (userID === post.userID) ? true : false;
+        return {
+            "postID": post.id,
+            "description": post.description,
+            "URL": post.URL,
+            "URL_title": post.URL_title,
+            "URL_description": post.URL_description,
+            "URL_image": post.URL_image,
+            "user": {
+                "id": post.userID,
+                "name": post.name,
+                "img": post.imageURL
+            },
+            "createdAt": post.createdAt,
+            "likes": Number(post.likes),
+            postOwner: postOwner
+        }
+    });
 
     return postsList;
 }

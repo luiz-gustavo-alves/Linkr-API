@@ -5,7 +5,7 @@ export const getTimelinePosts = async (req, res) => {
     const { offset } = req.query;
     
     try {
-        const posts = await usersService.getTimelinePosts(offset);
+        const posts = await usersService.getTimelinePosts(offset, 1);
         res.send(posts);
 
     } catch (err) {
