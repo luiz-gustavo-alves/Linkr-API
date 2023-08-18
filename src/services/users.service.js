@@ -2,6 +2,10 @@ import db from "../database/db.connection.js";
 
 const getTimelinePosts = async (offset) => {
 
+    if (!offset) {
+        offset = 0;
+    }
+
     const currentOffset = 20 * offset;
     const posts = await db.query(
         `SELECT t1.*, t2.name, t2."imageURL"
