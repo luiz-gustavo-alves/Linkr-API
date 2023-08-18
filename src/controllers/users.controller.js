@@ -6,7 +6,7 @@ export const getTimelinePosts = async (req, res) => {
     
     try {
         const posts = await usersService.getTimelinePosts(offset);
-        res.send(posts.rows);
+        res.send(posts);
 
     } catch (err) {
         res.status(500).send(err.message);

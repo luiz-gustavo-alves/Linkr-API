@@ -10,7 +10,7 @@ const getTimelinePosts = async (offset) => {
     const posts = await db.query(
         `SELECT t1.*, t2.name, t2."imageURL"
          FROM
-            (SELECT posts.*, COUNT(likes.*) AS "likesCount"
+            (SELECT posts.*, COUNT(likes.*) AS "likes"
                 FROM posts
                 LEFT JOIN likes
                 ON likes.id = posts.id
@@ -29,7 +29,23 @@ const getTimelinePosts = async (offset) => {
         `, [currentOffset]
     );
 
-    return posts;
+    const postsList = posts.rows.map(post => ({
+        "postID": post.id,
+        "description": post.description,
+        "URL": post.URL,
+        "URL_title": post.URL_title,
+        "URL_description": post.URL_description,
+        "URL_image": post.URL_image,
+        "user": {
+            "id": post.userID,
+            "name": post.name,
+            "img": post.imageURL
+        },
+        "createdAt": post.createdAt,
+        "likes": Number(post.likes)
+    }));
+
+    return postsList;
 }
 
 const usersService = {
@@ -37,3 +53,4 @@ const usersService = {
 }
 
 export default usersService;
+
