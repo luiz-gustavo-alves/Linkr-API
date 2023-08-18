@@ -53,8 +53,21 @@ const getTimelinePosts = async (offset, userID) => {
     return postsList;
 }
 
+async function userPosts(id){
+    const result = await db.query(`
+    SELECT p."id", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image",
+    json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user"
+    FROM "posts" p
+    JOIN "users" u ON p."userID" = u."id"
+    WHERE u."id" = $1
+    ORDER BY p."createdAt" DESC;
+    `, [id]);
+    return result;
+}
+
 const usersService = {
-    getTimelinePosts
+    getTimelinePosts,
+    userPosts
 }
 
 export default usersService;

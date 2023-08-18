@@ -14,7 +14,13 @@ export const getTimelinePosts = async (req, res) => {
 }
 
 export const getPostsByUser = async (req, res) => {
-    res.send(req.body);
+    const { id } = req.params;
+    try{
+        const result = await usersService.userPosts(id);
+        res.status(200).send(result.rows);
+    } catch (err) {
+        res.status(500).send({ message: "Error getting hashtag posts: " + err.message });
+    }
 }
 
 export const getPostsBySearch = async (req, res) => {
