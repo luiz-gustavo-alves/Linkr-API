@@ -144,6 +144,9 @@ async function hashtagPosts(hashtag) {
             'postID', p."id",
             'description', p."description",
             'URL', p."URL",
+            'URL_title', p."URL_title",
+            'URL_description', p."URL_description",
+            'URL_image', p."URL_image",
             'user', json_build_object(
                 'id', u."id",
                 'name', u."name",
