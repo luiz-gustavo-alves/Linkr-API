@@ -11,9 +11,9 @@ export async function getHashtagsList (req, res){
 }
 
 export async function getHashtagsPosts (req, res){
-    const { id } = req.params;
+    const { hashtag } = req.params;
     try{
-        const result = await hashtagsService.hashtagPosts(id);
+        const result = await hashtagsService.hashtagPosts(hashtag);
         res.status(200).send(result.rows);
     } catch (err) {
         res.status(500).send({ message: "Error getting hashtag posts: " + err.message });

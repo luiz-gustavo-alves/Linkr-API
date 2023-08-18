@@ -1,14 +1,14 @@
 import { Router } from "express";
 
 import {
-    getPosts,
+    getTimelinePosts,
     getPostsByUser,
     getPostsBySearch
 } from "../controllers/users.controller.js";
 
 const usersRouter = Router();
 
-usersRouter.get("/timeline", getPosts);
+usersRouter.get("/timeline", getTimelinePosts);
 usersRouter.get("/user/:id", getPostsByUser);
 usersRouter.get("/timeline/search/", getPostsBySearch);
 

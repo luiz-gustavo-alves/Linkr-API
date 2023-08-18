@@ -1,5 +1,6 @@
 import db from "../database/db.connection.js";
 import hashtagsService from "./hashtags.service.js";
+import getMetaData from "metadata-scraper";
 
 const checkUserPost = async (postID, userID) => {
 
@@ -19,13 +20,18 @@ const createPost = async (payload, hashtags, userID) => {
         URL,
     } = payload;
 
+    const res = await getMetaData(URL);
+    if (!res.description) {
+        res.description = "";
+    }
+
     const createdPost = await db.query(
         `INSERT INTO posts
-            (description, "URL", "userID")
+            (description, "userID", "URL", "URL_title", "URL_description", "URL_image")
          VALUES
-            ($1, $2, $3)
+            ($1, $2, $3, $4, $5, $6)
          RETURNING id;
-        `, [description, URL, userID]
+        `, [description, userID, URL, res.title, res.description, res.image]
     );
 
     if (hashtags.length > 0) {
