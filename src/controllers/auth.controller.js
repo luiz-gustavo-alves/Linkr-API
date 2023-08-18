@@ -13,6 +13,12 @@ export const signIn = async (req, res) => {
 
       const { id, imageURL } = reqSign.data
 
+      /* const authToken = jwt.sign({ id, imageURL }, process.env.JWT_SECRET || 'test', {
+         expiresIn: '1y',
+         subject: '1'
+      })
+      res.status(200).send(authToken) */
+
       const authToken = jwt.sign({ id }, process.env.JWT_SECRET || 'test', {
          expiresIn: '1y',
          subject: '1'
