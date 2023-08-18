@@ -9,7 +9,6 @@ export const getTimelinePosts = async (req, res) => {
         res.send(posts.rows);
 
     } catch (err) {
-        console.log(err);
         res.status(500).send(err.message);
     }
 }
