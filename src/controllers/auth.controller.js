@@ -6,9 +6,10 @@ dotenv.config()
 
 export const signIn = async (req, res) => {
    try {
-      const reqSign = await authService.login({ ...req.body })
+      const reqSign = await authService.login(req.body)
 
-      if (!req.success) return res.status(404).send('E-mail ou senha incorretos!')
+      if (!reqSign.success) return res.status(404).send('E-mail ou senha incorretos!')
+      
 
       const { id, imageURL } = reqSign.data
 
@@ -18,7 +19,7 @@ export const signIn = async (req, res) => {
       })
       res.status(200).send(authToken) */
 
-      const authToken = jwt.sign(id, process.env.JWT_SECRET || 'test', {
+      const authToken = jwt.sign({ id }, process.env.JWT_SECRET || 'test', {
          expiresIn: '1y',
          subject: '1'
       })
@@ -38,7 +39,7 @@ export const signUp = async (req, res) => {
       if (checkEmailConflict)
          return res.status(401).send('O e-mail informado já está em uso. Tente novamente!')
 
-      await authService.register({ ...req.body })
+      await authService.register(req.body)
 
       res.sendStatus(201)
    } catch (error) {

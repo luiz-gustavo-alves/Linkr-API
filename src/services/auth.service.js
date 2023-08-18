@@ -15,13 +15,17 @@ const register = async (payload) => {
 }
 
 const login = async (payload) => {
-   const req = await findEmail(payload.email)
-   const password_encrypted = bcrypt.compareSync(payload.password, req.rows[0].password)
+   const userReq = await findEmail(payload.email)
 
-   if (!req || !password_encrypted) return { success: false }
+   if (!userReq) return { success: false }
 
-   delete req.rows[0].password
-   return { success: true, data: req.rows[0] }
+   const password_encrypted = bcrypt.compareSync(payload.password, userReq.password)
+
+   if (!password_encrypted) return { success: false }
+
+   delete userReq.password
+
+   return { success: true, data: userReq }
 }
 
 const findEmail = async (email) => {
@@ -33,7 +37,7 @@ const findEmail = async (email) => {
       [email]
    )
 
-   return req.rows[0] ? true : false
+   return req.rows[0] ? req.rows[0] : false
 }
 
 const authService = {
