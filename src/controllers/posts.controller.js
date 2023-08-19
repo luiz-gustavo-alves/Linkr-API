@@ -2,10 +2,10 @@ import postsService from "../services/posts.service.js";
 
 export const createPost = async (req, res) => {
 
-    const { hashtags } = res.locals;
+    const { hashtags, userID } = res.locals;
 
     try {
-        await postsService.createPost(req.body, hashtags, 1);
+        await postsService.createPost(req.body, hashtags, userID);
         res.sendStatus(201);
 
     } catch (err) {
@@ -15,11 +15,11 @@ export const createPost = async (req, res) => {
 
 export const updatePost = async (req, res) => {
 
-    const { hashtags } = res.locals;
+    const { hashtags, userID } = res.locals;
     const { postID } = req.params;
 
     try {
-        await postsService.updatePost(req.body, hashtags, postID, 1);
+        await postsService.updatePost(req.body, hashtags, postID, userID);
         res.sendStatus(200);
 
     } catch (err) {

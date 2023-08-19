@@ -6,12 +6,15 @@ import {
     deletePost
 } from "../controllers/posts.controller.js";
 
+import { authValidation } from "../middlewares/authValidation.js";
 import { schemaValidation } from "../middlewares/schemaValidation.js";
 import { getHashtags } from "../middlewares/getHashtags.js";
 import { checkPostID } from "../middlewares/checkPostID.js";
 import { postsSchema } from "../schemas/posts.schema.js";
 
 const postsRouter = Router();
+
+postsRouter.use(authValidation);
 
 postsRouter.post("/create-post", schemaValidation(postsSchema), getHashtags, createPost);
 postsRouter.put("/update-post/:postID", checkPostID, schemaValidation(postsSchema), getHashtags, updatePost);
