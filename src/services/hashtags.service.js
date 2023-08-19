@@ -178,7 +178,6 @@ async function hashtagPosts(hashtag) {
     WHERE h."hashtag" = $1
     GROUP BY h."hashtag";
     `, [hashtag]);
-    console.log(result.rows);
     return result;
 }
 

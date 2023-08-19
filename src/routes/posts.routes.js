@@ -14,10 +14,8 @@ import { postsSchema } from "../schemas/posts.schema.js";
 
 const postsRouter = Router();
 
-postsRouter.use(authValidation);
-
-postsRouter.post("/create-post", schemaValidation(postsSchema), getHashtags, createPost);
-postsRouter.put("/update-post/:postID", checkPostID, schemaValidation(postsSchema), getHashtags, updatePost);
-postsRouter.delete("/delete-post/:postID", checkPostID, deletePost);
+postsRouter.post("/create-post", authValidation, schemaValidation(postsSchema), getHashtags, createPost);
+postsRouter.put("/update-post/:postID", authValidation, checkPostID, schemaValidation(postsSchema), getHashtags, updatePost);
+postsRouter.delete("/delete-post/:postID", authValidation, checkPostID, deletePost);
 
 export default postsRouter;
