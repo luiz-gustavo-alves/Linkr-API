@@ -33,7 +33,7 @@ const getTimelinePosts = async (offset, userID) => {
         const likesCount = post.lastLikes.length;
         const postOwner = (userID === post.user.id) ? true : false;
         return {
-            "postID": post.id,
+            "postID": post.postID,
             "description": post.description,
             "URL": post.URL,
             "URL_title": post.URL_title,
