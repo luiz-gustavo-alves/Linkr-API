@@ -2,7 +2,7 @@
   "name": "projeto19-linkr-back",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "./src/app.js",
   "scripts": {
     "start": "node ./src/app.js",
     "dev": "nodemon ./src/app.js",
