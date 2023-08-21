@@ -67,11 +67,18 @@ async function userPosts(id){
             LIMIT 3
         ) l3
         JOIN "users" u2 ON l3."userID" = u2."id"
-    ) AS "lastLikes"
+    ) AS "lastLikes",
+    COALESCE(l."likes_count", 0) AS "likes" -- Adicionando o campo "likes"
     FROM "posts" p
     JOIN "users" u ON p."userID" = u."id"
+    LEFT JOIN (
+        SELECT "postID", COUNT(*) AS "likes_count"
+        FROM "likes"
+        GROUP BY "postID"
+    ) l ON p."id" = l."postID"
     WHERE u."id" = $1
     ORDER BY p."createdAt" DESC;
+
     `, [id]);
 
     return result;
