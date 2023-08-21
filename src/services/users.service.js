@@ -78,9 +78,18 @@ async function userPosts(id){
     return result;
 }
 
+const getUsersBySearch = async (query) => {
+
+    const result = await db.query(`SELECT u.id, u.name, u."imageURL" FROM users as u WHERE name ILIKE $1 LIMIT 2`,
+    [`${query}%`])
+
+    return result;
+}
+
 const usersService = {
     getTimelinePosts,
-    userPosts
+    userPosts,
+    getUsersBySearch
 }
 
 export default usersService;
