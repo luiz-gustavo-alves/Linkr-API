@@ -1,5 +1,4 @@
 import usersService from '../services/users.service.js'
-import db from '../database/db.connection.js'
 
 export const getTimelinePosts = async (req, res) => {
    const { userID } = res.locals
@@ -21,10 +20,6 @@ export const getPostsByUser = async (req, res) => {
    } catch (err) {
       res.status(500).send({ message: 'Error getting hashtag posts: ' + err.message })
    }
-}
-
-export const getPostsBySearch = async (req, res) => {
-   res.send(req.body)
 }
 
 export const getUsersBySearch = async (req, res) => {
