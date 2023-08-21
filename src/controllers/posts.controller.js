@@ -29,10 +29,11 @@ export const updatePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
 
+    const { userID } = res.locals;
     const { postID } = req.params;
 
     try {
-        await postsService.deletePost(postID, 1);
+        await postsService.deletePost(postID, userID);
         res.sendStatus(204);
 
     } catch (err) {

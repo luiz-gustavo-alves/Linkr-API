@@ -1,9 +1,6 @@
 import db from "../database/db.connection.js";
 import {
-    getHashtagsInDatabase,
-    verifyNewHashtags,
-    insertHashtagsFromPost,
-    deleteHastagsInDatabase
+    verifyNewHashtags
 } from "../utils/hashtags/index.js";
 
 const getHashtagsByPost = async (postID) => {
@@ -17,14 +14,14 @@ const getHashtagsByPost = async (postID) => {
     return resultHashtagPost;
 }
 
-const getUniqueHashtags = async () => {
+const getUniqueHashtags = async (queryParams, hashtagsIDs) => {
 
     const uniqueHashtags = await db.query(
         `SELECT "hashtagID"
          FROM "hashtagPosts"
             GROUP BY "hashtagID"
-         HAVING COUNT(DISTINCT "postID") = 1;
-        `
+         HAVING COUNT(DISTINCT "postID") = 1 AND "hashtagID" IN ${queryParams};
+        `, [...hashtagsIDs]
     );
 
     return uniqueHashtags.rows;
@@ -32,8 +29,18 @@ const getUniqueHashtags = async () => {
 
 const createAndInsertHashtags = async (hashtags, postID) => {
 
-    const getResult = getHashtagsInDatabase(hashtags); 
-    const getQueryResult = await db.query(getResult.query, getResult.queryParams);
+    const uniqueHashtags = [...new Set(hashtags)];
+
+    /* Dynamic SQL query to check requested hashtags in database */
+    let queryValues = uniqueHashtags.map((params, index) => `$${index + 1}`).join(", ");
+    queryValues = "(" + queryValues + ")";
+
+    const getQueryResult = await db.query(
+        `SELECT hashtags.id, hashtags.hashtag 
+         FROM hashtags 
+         WHERE hashtag IN ${queryValues};
+        `, [...uniqueHashtags]
+    );
 
     const insertHashtags = {};
     getQueryResult.rows.forEach(result => insertHashtags[result.hashtag] = result.id);
@@ -58,8 +65,24 @@ const createAndInsertHashtags = async (hashtags, postID) => {
         }
     }
 
-    const insertQueryResult = insertHashtagsFromPost(hashtags, insertHashtags, postID);
-    await db.query(insertQueryResult.query, insertQueryResult.queryParams);
+    /* Dynamic SQL query to insert hashtags from post */
+    queryValues = [];
+    hashtags.forEach((hashtag) => {
+      queryValues.push(insertHashtags[hashtag]);
+      queryValues.push(postID)
+    })
+
+    const queryParams = queryValues.map((value, index) => {
+      if ((index + 1) % 2 === 0) return `$${index + 1})`;
+      else return `($${index + 1}`;
+    }).join(", ");
+
+    await db.query(
+        `INSERT INTO "hashtagPosts"
+            ("hashtagID", "postID")
+         VALUES ${queryParams}
+        `, [...queryValues]
+    );
 }
 
 const deleteHashtags = async (resultHashtagPost, postID) => {
@@ -71,7 +94,11 @@ const deleteHashtags = async (resultHashtagPost, postID) => {
         }
     });
 
-    const uniqueHashtags = await getUniqueHashtags();
+    /* Dynamic SQL query to check unique hashtags in database */
+    let queryParams = hashtagsIDs.map((params, index) => `$${index + 1}`).join(", ");
+    queryParams = "(" + queryParams + ")";
+
+    const uniqueHashtags = await getUniqueHashtags(queryParams, hashtagsIDs);
 
     const uniqueHashtagsIDs = [];
     uniqueHashtags.forEach(singleHashtag => {
@@ -79,12 +106,30 @@ const deleteHashtags = async (resultHashtagPost, postID) => {
             uniqueHashtagsIDs.push(singleHashtag.hashtagID);
         }
     })
+    
+    /* Dynamic SQL query to delete hashtags from posts in database */
+    queryParams = hashtagsIDs.map((params, index) => `$${index + 2}`).join(", ");
+    queryParams = "(" + queryParams + ")";
 
-    const deleteQueryResult = deleteHastagsInDatabase(hashtagsIDs, postID, uniqueHashtagsIDs);
-    await db.query(deleteQueryResult.firstQuery, deleteQueryResult.firstQueryParams);
+    await db.query(
+        `DELETE FROM "hashtagPosts" 
+         WHERE "postID" = $1 AND "hashtagID" IN ${queryParams}
+        `, [postID, ...hashtagsIDs]
+    );
 
     if (uniqueHashtagsIDs.length > 0) {
-        await db.query(deleteQueryResult.secondQuery, deleteQueryResult.secondQueryParams);
+
+        /* Dynamic SQL query to delete unique hashtags in database */
+        queryParams = uniqueHashtagsIDs.map((params, index) => {
+            if ((index + 1) < uniqueHashtags.length) return `id = $${index + 1} OR `;
+            else return `id = $${index + 1}`;
+        }).join("");
+
+        await db.query(
+            `DELETE FROM hashtags 
+             WHERE ${queryParams};
+            `, [...uniqueHashtagsIDs]
+        );
     }
 }
 
