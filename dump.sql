@@ -194,15 +194,12 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 -- Data for Name: hashtagPosts; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public."hashtagPosts" VALUES (17, 16);
+
 
 
 --
 -- Data for Name: hashtags; Type: TABLE DATA; Schema: public; Owner: -
 --
-
-INSERT INTO public.hashtags VALUES (17, '#phonk', '2023-08-18 13:52:53.014516');
-INSERT INTO public.hashtags VALUES (19, '#kkkk', '2023-08-19 21:59:42.290825');
 
 
 --
