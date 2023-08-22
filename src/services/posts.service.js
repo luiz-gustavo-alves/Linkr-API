@@ -25,6 +25,10 @@ const createPost = async (payload, hashtags, userID) => {
         res.description = "";
     }
 
+    if (!res.image) {
+        res.image = "";
+    }
+
     const createdPost = await db.query(
         `INSERT INTO posts
             (description, "userID", "URL", "URL_title", "URL_description", "URL_image")
