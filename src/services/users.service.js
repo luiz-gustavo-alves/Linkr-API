@@ -111,8 +111,9 @@ const getUsersBySearch = async (query) => {
    return { liked: true }
 }
 
-const follow = async ({following, follower}) => {
-    const followed = await db.query(`SELECT id FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
+const follow = async (following, follower) => {
+
+    const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
         following,
         follower
     ]);

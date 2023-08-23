@@ -58,11 +58,12 @@ export const postFollow = async (req, res) => {
 
    try {
 
-      const result = await usersService.follow({ userID, follower });
+      const result = await usersService.follow(userID, follower);
 
       res.status(200).send(result);
 
-   } catch (error) {
+   } catch (err) {
+      console.log(err);
       res.status(500).send({ message: err.message });
    }
 }
