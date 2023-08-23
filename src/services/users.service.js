@@ -98,11 +98,31 @@ const postLike = async ({ userID, postID }) => {
    return { liked: true }
 }
 
+const follow = async ({following, follower}) => {
+    const followed = await db.query(`SELECT id FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
+        following,
+        follower
+    ]);
+  
+     if (followed.rows[0]) {
+        await db.query(`DELETE FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
+            following,
+            follower
+        ])
+        return { followed: false }
+     };
+  
+     await db.query(`INSERT INTO follows ("userID_following", "userID_follower") VALUES ($1, $2)`, [following, follower]);
+  
+     return { followed: true };
+}
+
 const usersService = {
    getTimelinePosts,
    userPosts,
    getUsersBySearch,
-   postLike
+   postLike,
+   follow
 }
 
 export default usersService
