@@ -51,6 +51,23 @@ export const postFollow = async (req, res) => {
    }
 }
 
+export const checkFollow = async (req, res) => {
+
+   const { follower } = req.params;
+   const { userID } = res.locals;
+
+   try {
+
+      const result = await usersService.follow(userID, follower);
+
+      res.status(200).send(result);
+
+   } catch (err) {
+      console.log(err);
+      res.status(500).send({ message: err.message });
+   }
+}
+
 export const postLike = async(req, res) => {
 
    const {token, postID} = req.body
