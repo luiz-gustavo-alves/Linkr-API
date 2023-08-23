@@ -34,6 +34,22 @@ export const getUsersBySearch = async (req, res) => {
    }
 }
 
+export const postFollow = async (req, res) => {
+
+   const { follower } = req.body;
+   const { userID } = res.locals;
+
+   try {
+
+      const result = await usersService.follow({ userID, follower });
+
+      res.status(200).send(result);
+
+   } catch (error) {
+      res.status(500).send({ message: err.message });
+   }
+}
+
 export const postLike = async(req, res) => {
 
    const {token, postID} = req.body
@@ -63,14 +79,3 @@ export const postLike = async(req, res) => {
   9 | gerlandio
 
  */
-
-/* 
-    3 | Pokémon Ruby, Sapphire & Emerald - Team Aqua/Magma Music (HQ)
-  5 | Em guerra com o Santos, Zeca está na mira do Palmeiras 
-  8 | Figma
-  9 | Figma
- 12 | Example Domain
-
-  */
-
- // INSERT INTO likes (userID, postID) VALUES (3, 5);
