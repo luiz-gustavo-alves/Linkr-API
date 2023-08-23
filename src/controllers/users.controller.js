@@ -63,17 +63,15 @@ export const postFollow = async (req, res) => {
 
 export const checkFollow = async (req, res) => {
 
-   const { follower } = req.params;
+   const { id } = req.params;
    const { userID } = res.locals;
-
    try {
 
-      const result = await usersService.follow(userID, follower);
+      const result = await usersService.followCheck(userID, id);
 
       res.status(200).send(result);
 
    } catch (err) {
-      console.log(err);
       res.status(500).send({ message: err.message });
    }
 }
