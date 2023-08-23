@@ -87,6 +87,15 @@ async function userPosts(id) {
    return result
 }
 
+const getUsersBySearch = async (query) => {
+   const result = await db.query(
+      `SELECT u.id, u.name, u."imageURL" FROM users as u WHERE name ILIKE $1 LIMIT 2`,
+      [`${query}%`]
+   )
+
+   return result
+}
+
 const postLike = async ({ userID, postID }) => {
    const liked = await db.query(`SELECT id FROM likes WHERE "userID" = $1 AND "postID" = $2`, [
       userID,
@@ -99,14 +108,6 @@ const postLike = async ({ userID, postID }) => {
    }
 
    await db.query(`INSERT INTO likes ("userID", "postID") VALUES ($1, $2)`, [userID, postID])
-
-   return { liked: true }
-}
-
-const getUsersBySearch = async (query) => {
-
-    const result = await db.query(`SELECT u.id, u.name, u."imageURL" FROM users as u WHERE name ILIKE $1 LIMIT 2`,
-    [`${query}%`])
 
    return { liked: true }
 }
@@ -133,7 +134,6 @@ const follow = async ({following, follower}) => {
 const usersService = {
    getTimelinePosts,
    userPosts,
-   getUsersBySearch,
    getUsersBySearch,
    postLike,
    follow
