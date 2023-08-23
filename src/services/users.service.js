@@ -1,12 +1,18 @@
 import db from '../database/db.connection.js'
 
-const getTimelinePosts = async (offset, userID) => {
+const countTimelinePosts = async () => {
 
-   if (!offset) {
-      offset = 0
-   }
+   const counter = await db.query(
+      `SELECT COUNT(*)
+         FROM posts;
+      `
+   );
 
-   const currentOffset = 20 * offset
+   return Number(counter.rows[0].count);
+}
+
+const getTimelinePosts = async (limit, userID) => {
+
    const posts = await db.query(
       `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
          json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
@@ -31,9 +37,9 @@ const getTimelinePosts = async (offset, userID) => {
             GROUP BY "postID"
          ) l ON p."id" = l."postID"
          ORDER BY p."createdAt" DESC
-            LIMIT 3 OFFSET $2;
+            LIMIT $2
       `,
-      [userID, currentOffset]
+      [userID, limit]
    );
 
    return posts.rows;
@@ -118,6 +124,7 @@ const follow = async ({following, follower}) => {
 }
 
 const usersService = {
+   countTimelinePosts,
    getTimelinePosts,
    userPosts,
    getUsersBySearch,

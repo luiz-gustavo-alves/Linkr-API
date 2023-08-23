@@ -1,12 +1,22 @@
 import usersService from '../services/users.service.js'
 import jwt from 'jsonwebtoken'
 
-export const getTimelinePosts = async (req, res) => {
-   const { userID } = res.locals
-   const { offset } = req.query
+export const countTimelinePosts = async (req, res) => {
 
    try {
-      const posts = await usersService.getTimelinePosts(offset, userID)
+      const counter = await usersService.countTimelinePosts();
+      res.send({counter});
+   } catch (err) {
+      res.status(500).send(err.message);
+   }
+}
+
+export const getTimelinePosts = async (req, res) => {
+   const { userID } = res.locals
+   const { limit } = req.query
+
+   try {
+      const posts = await usersService.getTimelinePosts(limit, userID)
       res.send(posts)
    } catch (err) {
       res.status(500).send(err.message)
