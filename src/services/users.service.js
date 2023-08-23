@@ -114,14 +114,6 @@ const postLike = async ({ userID, postID }) => {
 
 const follow = async (following, follower) => {
 
-    const result = await db.query(`SELECT u.id, u.name, u."imageURL" FROM users as u WHERE name ILIKE $1 LIMIT 2`,
-    [`${query}%`])
-
-   return { liked: true }
-}
-
-const follow = async (following, follower) => {
-
     const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
         following,
         follower

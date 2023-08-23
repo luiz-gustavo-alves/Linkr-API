@@ -17,7 +17,6 @@ usersRouter.get("/user/:id", getPostsByUser);
 usersRouter.get("/timeline/search/users/:search", getUsersBySearch);
 usersRouter.post("/follow", authValidation, postFollow);
 usersRouter.get("/follow/:id", authValidation, postFollow); // fazer essa 
-
 usersRouter.post("/post/like", postLike);
 
 export default usersRouter;
