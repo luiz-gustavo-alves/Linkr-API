@@ -104,8 +104,9 @@ const postLike = async ({ userID, postID }) => {
    return { liked: true }
 }
 
-const follow = async ({following, follower}) => {
-    const followed = await db.query(`SELECT id FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
+const follow = async (following, follower) => {
+
+    const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
         following,
         follower
     ]);
@@ -123,13 +124,26 @@ const follow = async ({following, follower}) => {
      return { followed: true };
 }
 
+const followCheck = async (following, follower) => {
+
+   const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
+       following,
+       follower
+   ]);
+    if (followed.rows[0]) {
+    return { followed: true };
+    };
+    return { followed: false }
+}
+
 const usersService = {
    countTimelinePosts,
    getTimelinePosts,
    userPosts,
    getUsersBySearch,
    postLike,
-   follow
+   follow,
+   followCheck
 }
 
 export default usersService
