@@ -1,5 +1,6 @@
 import usersService from '../services/users.service.js'
 import jwt from 'jsonwebtoken'
+import addComments from '../utils/comments/index.js';
 
 export const countTimelinePosts = async (req, res) => {
 
@@ -16,8 +17,10 @@ export const getTimelinePosts = async (req, res) => {
    const { limit } = req.query
 
    try {
-      const posts = await usersService.getTimelinePosts(limit, userID)
-      res.send(posts)
+      const posts = await usersService.getTimelinePosts(limit, userID);
+      const postsWithComments = await addComments(posts, userID);
+
+      res.status(200).send(postsWithComments);
    } catch (err) {
       res.status(500).send(err.message)
    }
