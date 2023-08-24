@@ -41,7 +41,13 @@ const getTimelinePosts = async (limit, userID) => {
       `,
       [userID, limit]
    );
+            /*
+   const following = await db.query(`SELECT * FROM follows WHERE "userID_follower" = $1`, [userID]);
 
+   const postsFollowing = posts.map((post) => {
+      //fzr aq a junçao 
+   })
+            */
    return posts.rows;
 }
 
@@ -136,6 +142,38 @@ const followCheck = async (following, follower) => {
     return { followed: false }
 }
 
+const createComment = async (userID_owner, userID_comment, postID, comment) => {
+   console.log(userID_owner, userID_comment, postID, comment);
+   const result = await db.query(`
+      INSERT INTO comments ("userID_owner", "userID_comment", "postID", "comment") 
+      VALUES ($1, $2, $3, $4)
+      RETURNING id;`, 
+      [userID_owner, userID_comment, postID, comment]);
+ 
+   return result;
+
+}
+
+const getAllComments = async () => {
+   const result = await db.query(`
+   SELECT c."id" AS "commentID", c."userID_owner", c."postID", c."comment", c."createdAt",
+   json_build_object('id', uc."id", 'name', uc."name", 'img', uc."imageURL") AS "user"
+   FROM "comments" c
+   JOIN "users" uc ON c."userID_comment" = uc."id"
+   `);
+ 
+   return result.rows;
+}
+
+const getAllFollows = async (id) => {
+   const result = await db.query(`
+   SELECT * FROM follows WHERE "userID_follower" = $1;`, [id]);
+
+   return result.rows;
+}
+
+
+
 const usersService = {
    countTimelinePosts,
    getTimelinePosts,
@@ -143,7 +181,10 @@ const usersService = {
    getUsersBySearch,
    postLike,
    follow,
-   followCheck
+   followCheck,
+   createComment,
+   getAllComments,
+   getAllFollows
 }
 
 export default usersService

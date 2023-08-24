@@ -7,7 +7,8 @@ import {
     getUsersBySearch,
     postFollow,
     postLike,
-    checkFollow
+    checkFollow,
+    commentPost
 } from "../controllers/users.controller.js";
 
 import { authValidation } from "../middlewares/authValidation.js";
@@ -21,5 +22,6 @@ usersRouter.get("/timeline/search/users/:search", getUsersBySearch);
 usersRouter.post("/follow", authValidation, postFollow);
 usersRouter.get("/follow/:id", authValidation, checkFollow);
 usersRouter.post("/post/like", postLike);
+usersRouter.post("/comments", authValidation, commentPost);
 
 export default usersRouter;

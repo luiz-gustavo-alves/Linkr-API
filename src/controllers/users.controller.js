@@ -93,6 +93,20 @@ export const postLike = async(req, res) => {
    }
 }
 
+export const commentPost = async (req, res) => {
+
+   const { userID } = res.locals;
+   const {userID_owner, postID, comment} = req.body;
+
+   try {
+       await usersService.createComment(userID_owner, userID, postID, comment);
+       res.sendStatus(201);
+
+   } catch (err) {
+       res.send(err.message);
+   }
+}
+
 /* 
   1 | Ze
   2 | zeca
