@@ -1,18 +1,16 @@
 import db from '../database/db.connection.js'
 
 const countTimelinePosts = async () => {
-
    const counter = await db.query(
       `SELECT COUNT(*)
          FROM posts;
       `
-   );
+   )
 
-   return Number(counter.rows[0].count);
+   return Number(counter.rows[0].count)
 }
 
 const getTimelinePosts = async (limit, userID) => {
-
    const posts = await db.query(
       `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
          json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
@@ -40,9 +38,9 @@ const getTimelinePosts = async (limit, userID) => {
             LIMIT $2
       `,
       [userID, limit]
-   );
+   )
 
-   return posts.rows;
+   return posts.rows
 }
 
 async function userPosts(id) {
@@ -79,10 +77,26 @@ async function userPosts(id) {
    return result
 }
 
-const getUsersBySearch = async (query) => {
+const getUsersBySearch = async (query, userID) => {
    const result = await db.query(
-      `SELECT u.id, u.name, u."imageURL" FROM users as u WHERE name ILIKE $1 LIMIT 2`,
-      [`${query}%`]
+      `SELECT DISTINCT
+      u.id,
+      u.name,
+      u."imageURL",
+      CASE WHEN f."userID_follower" IS NOT NULL THEN true ELSE false END as "isFollower"
+  FROM
+      users u
+  LEFT JOIN
+      follows f ON u.id = f."userID_follower" AND f."userID_following" = $1
+  WHERE
+      u.name ILIKE $2
+  ORDER BY
+      "isFollower" DESC
+  LIMIT 2;
+  
+  
+  `,
+      [userID, `${query}%`]
    )
 
    return result
@@ -105,35 +119,36 @@ const postLike = async ({ userID, postID }) => {
 }
 
 const follow = async (following, follower) => {
+   const followed = await db.query(
+      `SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`,
+      [following, follower]
+   )
 
-    const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
-        following,
-        follower
-    ]);
-  
-     if (followed.rows[0]) {
-        await db.query(`DELETE FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
-            following,
-            follower
-        ])
-        return { followed: false }
-     };
-  
-     await db.query(`INSERT INTO follows ("userID_following", "userID_follower") VALUES ($1, $2)`, [following, follower]);
-  
-     return { followed: true };
+   if (followed.rows[0]) {
+      await db.query(
+         `DELETE FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`,
+         [following, follower]
+      )
+      return { followed: false }
+   }
+
+   await db.query(`INSERT INTO follows ("userID_following", "userID_follower") VALUES ($1, $2)`, [
+      following,
+      follower
+   ])
+
+   return { followed: true }
 }
 
 const followCheck = async (following, follower) => {
-
-   const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
-       following,
-       follower
-   ]);
-    if (followed.rows[0]) {
-    return { followed: true };
-    };
-    return { followed: false }
+   const followed = await db.query(
+      `SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`,
+      [following, follower]
+   )
+   if (followed.rows[0]) {
+      return { followed: true }
+   }
+   return { followed: false }
 }
 
 const usersService = {

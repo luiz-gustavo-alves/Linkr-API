@@ -2,12 +2,11 @@ import usersService from '../services/users.service.js'
 import jwt from 'jsonwebtoken'
 
 export const countTimelinePosts = async (req, res) => {
-
    try {
-      const counter = await usersService.countTimelinePosts();
-      res.send({counter});
+      const counter = await usersService.countTimelinePosts()
+      res.send({ counter })
    } catch (err) {
-      res.status(500).send(err.message);
+      res.status(500).send(err.message)
    }
 }
 
@@ -35,9 +34,12 @@ export const getPostsByUser = async (req, res) => {
 
 export const getUsersBySearch = async (req, res) => {
    const { search } = req.params
-
+   const str = search.split(',')[0]
+   const userID = search.split(',')[1]
+   
    try {
-      const users = await usersService.getUsersBySearch(search)
+      const users = await usersService.getUsersBySearch(str, userID)
+
       res.status(200).send(users.rows)
    } catch (error) {
       res.status(500).send(error)
@@ -45,63 +47,40 @@ export const getUsersBySearch = async (req, res) => {
 }
 
 export const postFollow = async (req, res) => {
-
-   const { follower } = req.body;
-   const { userID } = res.locals;
+   const { follower } = req.body
+   const { userID } = res.locals
 
    try {
+      const result = await usersService.follow(userID, follower)
 
-      const result = await usersService.follow(userID, follower);
-
-      res.status(200).send(result);
-
+      res.status(200).send(result)
    } catch (err) {
-      console.log(err);
-      res.status(500).send({ message: err.message });
+      console.log(err)
+      res.status(500).send({ message: err.message })
    }
 }
 
 export const checkFollow = async (req, res) => {
-
-   const { id } = req.params;
-   const { userID } = res.locals;
+   const { id } = req.params
+   const { userID } = res.locals
    try {
+      const result = await usersService.followCheck(userID, id)
 
-      const result = await usersService.followCheck(userID, id);
-
-      res.status(200).send(result);
-
+      res.status(200).send(result)
    } catch (err) {
-      res.status(500).send({ message: err.message });
+      res.status(500).send({ message: err.message })
    }
 }
 
-export const postLike = async(req, res) => {
-
-   const {token, postID} = req.body
+export const postLike = async (req, res) => {
+   const { token, postID } = req.body
    const userID = jwt.verify(token, process.env.JWT_SECRET || 'test').id
 
    try {
-
-      const rq = await usersService.postLike({userID, postID})
-
+      const rq = await usersService.postLike({ userID, postID })
 
       res.status(200).send(rq)
-      
    } catch (error) {
       res.status(500).send(error)
    }
 }
-
-/* 
-  1 | Ze
-  2 | zeca
-  3 | geraldogomesss
-  4 | luiz
-  5 | lucas
-  6 | geraldo
-  7 | luiz
-  8 | lucas
-  9 | gerlandio
-
- */
