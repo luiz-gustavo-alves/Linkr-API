@@ -14,4 +14,5 @@ authRouter.post("/", schemaValidation(userSignInSchema), signIn);
 authRouter.post("/sign-up", schemaValidation(userSignUpSchema), signUp);
 authRouter.post("/logout", logout);
 
+
 export default authRouter;

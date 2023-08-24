@@ -12,20 +12,28 @@ const countTimelinePosts = async () => {
 
 const getTimelinePosts = async (limit, userID) => {
    const posts = await db.query(
-      `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
+      `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image",
          json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
          CAST(CASE WHEN p."userID" = $1 THEN 1 ELSE 0 END AS BIT) AS "postOwner",
          (
-            SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
+            SELECT COALESCE(array_agg(json_build_object('id', u2."id", 'name', u2."name")) FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::JSON[])
             FROM (
                SELECT "userID"
                FROM "likes" l2
                WHERE l2."postID" = p."id"
                ORDER BY l2."id" DESC
-               LIMIT 3
+               LIMIT 2
             ) l3
             JOIN "users" u2 ON l3."userID" = u2."id"
          ) AS "lastLikes",
+         COALESCE(
+            (
+                SELECT array_agg(l4."userID")
+                FROM "likes" l4
+                WHERE l4."postID" = p."id"
+            ),
+            ARRAY[]::INTEGER[]
+        ) AS "allLikedUserIDs",
          COALESCE(l."likes_count", 0) AS "likes"
          FROM "posts" p
          JOIN "users" u ON p."userID" = u."id"
@@ -110,12 +118,19 @@ const postLike = async ({ userID, postID }) => {
 
    if (liked.rows[0]) {
       await db.query(`DELETE FROM likes WHERE id = $1`, [liked.rows[0].id])
-      return { liked: false }
+
+      const currentLikes = await db.query(`SELECT "postID" FROM likes WHERE "postID" = $1`, [
+         postID
+      ])
+
+      return { liked: false, currentLikes: currentLikes.rowCount }
    }
 
    await db.query(`INSERT INTO likes ("userID", "postID") VALUES ($1, $2)`, [userID, postID])
 
-   return { liked: true }
+   const currentLikes = await db.query(`SELECT "postID" FROM likes WHERE "postID" = $1`, [postID])
+
+   return { liked: true, currentLikes: currentLikes.rowCount }
 }
 
 const follow = async (following, follower) => {
