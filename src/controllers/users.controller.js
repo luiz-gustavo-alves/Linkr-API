@@ -4,8 +4,10 @@ import addComments from '../utils/comments/index.js';
 
 export const countTimelinePosts = async (req, res) => {
 
+   const { userID } = res.locals;
+
    try {
-      const counter = await usersService.countTimelinePosts();
+      const counter = await usersService.countTimelinePosts(userID);
       res.send({counter});
    } catch (err) {
       res.status(500).send(err.message);

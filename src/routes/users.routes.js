@@ -15,7 +15,7 @@ import { authValidation } from "../middlewares/authValidation.js";
 
 const usersRouter = Router();
 
-usersRouter.get("/countTimelinePosts", countTimelinePosts);
+usersRouter.get("/countTimelinePosts", authValidation, countTimelinePosts);
 usersRouter.get("/timeline", authValidation, getTimelinePosts);
 usersRouter.get("/user/:id", authValidation, getPostsByUser);
 usersRouter.get("/timeline/search/users/:search", getUsersBySearch);
