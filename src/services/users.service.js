@@ -178,7 +178,6 @@ const followCheck = async (following, follower) => {
 }
 
 const createComment = async (userID_owner, userID_comment, postID, comment) => {
-   console.log(userID_owner, userID_comment, postID, comment);
    const result = await db.query(`
       INSERT INTO comments ("userID_owner", "userID_comment", "postID", "comment") 
       VALUES ($1, $2, $3, $4)
