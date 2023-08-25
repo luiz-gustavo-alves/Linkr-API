@@ -2,6 +2,19 @@ import usersService from '../services/users.service.js'
 import jwt from 'jsonwebtoken'
 import addComments from '../utils/comments/index.js';
 
+export const countFollowing = async (req, res) => {
+
+   const { userID } = res.locals;
+
+   try {
+      const counter = await usersService.countFollowing(userID);
+      res.send({counter});
+
+   } catch (err) {
+      res.status(500).send(err.message);
+   }
+}
+
 export const countTimelinePosts = async (req, res) => {
 
    const { userID } = res.locals;
