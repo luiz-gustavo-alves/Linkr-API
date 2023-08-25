@@ -1,6 +1,7 @@
 import hashtagsService from "../services/hashtags.service.js";
+import addComments from "../utils/comments/index.js";
 
-export async function getHashtagsList (req, res){
+export async function getHashtagsList(req, res) {
 
     try {
         const result = await hashtagsService.hashtagsList();
@@ -10,11 +11,20 @@ export async function getHashtagsList (req, res){
     }
 }
 
-export async function getHashtagsPosts (req, res){
+export async function getHashtagsPosts(req, res) {
     const { hashtag } = req.params;
-    try{
+    const { userID } = res.locals;
+
+    try {
         const result = await hashtagsService.hashtagPosts(hashtag);
-        res.status(200).send(result.rows);
+        const resultWithComments = await addComments(result.rows[0].posts, userID);
+
+        const hashtagsWithComments = {
+            hashtag: result.rows[0].hashtag,
+            posts: resultWithComments
+        }
+
+        res.status(200).send(hashtagsWithComments);
     } catch (err) {
         res.status(500).send({ message: "Error getting hashtag posts: " + err.message });
     }

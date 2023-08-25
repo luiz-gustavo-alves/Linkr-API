@@ -13,42 +13,56 @@ const countTimelinePosts = async () => {
 
 const getTimelinePosts = async (limit, userID) => {
 
+   const following = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1`, [userID]);
+
+   let followingIDs = following.rows.map(row => row.userID_follower);
+   followingIDs.push(userID);
+
    const posts = await db.query(
       `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
-         json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
-         CAST(CASE WHEN p."userID" = $1 THEN 1 ELSE 0 END AS BIT) AS "postOwner",
-         (
-            SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
-            FROM (
-               SELECT "userID"
-               FROM "likes" l2
-               WHERE l2."postID" = p."id"
-               ORDER BY l2."id" DESC
-               LIMIT 3
-            ) l3
-            JOIN "users" u2 ON l3."userID" = u2."id"
-         ) AS "lastLikes",
-         COALESCE(l."likes_count", 0) AS "likes"
-         FROM "posts" p
-         JOIN "users" u ON p."userID" = u."id"
-         LEFT JOIN (
-            SELECT "postID", COUNT(*) AS "likes_count"
-            FROM "likes"
-            GROUP BY "postID"
-         ) l ON p."id" = l."postID"
-         ORDER BY p."createdAt" DESC
-            LIMIT $2
+             json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
+             CAST(CASE WHEN p."userID" = $1 THEN 1 ELSE 0 END AS BIT) AS "postOwner",
+             (
+                SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
+                FROM (
+                   SELECT "userID"
+                   FROM "likes" l2
+                   WHERE l2."postID" = p."id"
+                   ORDER BY l2."id" DESC
+                   LIMIT 3
+                ) l3
+                JOIN "users" u2 ON l3."userID" = u2."id"
+             ) AS "lastLikes",
+             COALESCE(l."likes_count", 0) AS "likes",
+             COALESCE(
+               (
+                   SELECT array_agg(l4."userID")
+                   FROM "likes" l4
+                   WHERE l4."postID" = p."id"
+               ),
+               ARRAY[]::INTEGER[]
+               ) AS "allLikedUserIDs"
+       FROM "posts" p
+       JOIN "users" u ON p."userID" = u."id"
+       LEFT JOIN (
+          SELECT "postID", COUNT(*) AS "likes_count"
+          FROM "likes"
+          GROUP BY "postID"
+       ) l ON p."id" = l."postID"
+       WHERE p."userID" = ANY($2)
+       ORDER BY p."createdAt" DESC
+       LIMIT $3
       `,
-      [userID, limit]
-   );
-
-   return posts.rows;
+      [userID, followingIDs, limit]
+    );
+    
+    return posts.rows;
 }
 
 async function userPosts(id) {
    const result = await db.query(
       `
-    SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image",
+    SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
     json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
     (
         SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
@@ -61,7 +75,15 @@ async function userPosts(id) {
         ) l3
         JOIN "users" u2 ON l3."userID" = u2."id"
     ) AS "lastLikes",
-    COALESCE(l."likes_count", 0) AS "likes" -- Adicionando o campo "likes"
+    COALESCE(l."likes_count", 0) AS "likes",
+    COALESCE(
+      (
+          SELECT array_agg(l4."userID")
+          FROM "likes" l4
+          WHERE l4."postID" = p."id"
+      ),
+      ARRAY[]::INTEGER[]
+      ) AS "allLikedUserIDs"
     FROM "posts" p
     JOIN "users" u ON p."userID" = u."id"
     LEFT JOIN (
@@ -136,6 +158,29 @@ const followCheck = async (following, follower) => {
     return { followed: false }
 }
 
+const createComment = async (userID_owner, userID_comment, postID, comment) => {
+   console.log(userID_owner, userID_comment, postID, comment);
+   const result = await db.query(`
+      INSERT INTO comments ("userID_owner", "userID_comment", "postID", "comment") 
+      VALUES ($1, $2, $3, $4)
+      RETURNING id;`, 
+      [userID_owner, userID_comment, postID, comment]);
+ 
+   return result;
+
+}
+
+const getAllComments = async () => {
+   const result = await db.query(`
+   SELECT c."id" AS "commentID", c."userID_owner", c."postID", c."comment", c."createdAt",
+   json_build_object('id', uc."id", 'name', uc."name", 'img', uc."imageURL") AS "user"
+   FROM "comments" c
+   JOIN "users" uc ON c."userID_comment" = uc."id"
+   `);
+ 
+   return result.rows;
+}
+
 const usersService = {
    countTimelinePosts,
    getTimelinePosts,
@@ -143,7 +188,9 @@ const usersService = {
    getUsersBySearch,
    postLike,
    follow,
-   followCheck
+   followCheck,
+   createComment,
+   getAllComments
 }
 
 export default usersService
