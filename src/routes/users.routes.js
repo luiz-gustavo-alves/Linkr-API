@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import {
+    countFollowing,
     countTimelinePosts,
     getTimelinePosts,
     getPostsByUser,
@@ -15,6 +16,7 @@ import { authValidation } from "../middlewares/authValidation.js";
 
 const usersRouter = Router();
 
+usersRouter.get("countFollowing", authValidation, countFollowing);
 usersRouter.get("/countTimelinePosts", authValidation, countTimelinePosts);
 usersRouter.get("/timeline", authValidation, getTimelinePosts);
 usersRouter.get("/user/:id", authValidation, getPostsByUser);

@@ -1,5 +1,17 @@
 import db from '../database/db.connection.js'
 
+const countFollowing = async (userID) => {
+   
+   const counter = await db.query(
+      `SELECT COUNT(*) 
+       FROM follows 
+       WHERE "userID_following" = $1`
+      , [userID]
+   );
+
+   return Number(counter.rows[0].count);
+}
+
 const countTimelinePosts = async (userID) => {
 
    const following = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1`, [userID]);
@@ -188,6 +200,7 @@ const getAllComments = async () => {
 }
 
 const usersService = {
+   countFollowing,
    countTimelinePosts,
    getTimelinePosts,
    userPosts,
