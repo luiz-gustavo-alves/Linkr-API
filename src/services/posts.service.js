@@ -94,7 +94,6 @@ const updatePost = async (payload, hashtags, postID, userID) => {
     }
 }
 
-
 const postsService = {
     checkUserPost,
     createPost,
