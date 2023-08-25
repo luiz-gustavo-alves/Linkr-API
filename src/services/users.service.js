@@ -13,7 +13,7 @@ const countTimelinePosts = async () => {
 
 const getTimelinePosts = async (limit, userID) => {
 
-   const posts = await db.query(
+   /*const posts = await db.query(
       `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
          json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
          CAST(CASE WHEN p."userID" = $1 THEN 1 ELSE 0 END AS BIT) AS "postOwner",
@@ -40,7 +40,44 @@ const getTimelinePosts = async (limit, userID) => {
             LIMIT $2
       `,
       [userID, limit]
-   );
+   );*/
+
+   const posts = await db.query(
+      `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image",
+         json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
+         CAST(CASE WHEN p."userID" = $1 THEN 1 ELSE 0 END AS BIT) AS "postOwner",
+         (
+            SELECT COALESCE(array_agg(json_build_object('id', u2."id", 'name', u2."name")) FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::JSON[])
+            FROM (
+               SELECT "userID"
+               FROM "likes" l2
+               WHERE l2."postID" = p."id"
+               ORDER BY l2."id" DESC
+               LIMIT 2
+            ) l3
+            JOIN "users" u2 ON l3."userID" = u2."id"
+         ) AS "lastLikes",
+         COALESCE(
+            (
+                SELECT array_agg(l4."userID")
+                FROM "likes" l4
+                WHERE l4."postID" = p."id"
+            ),
+            ARRAY[]::INTEGER[]
+        ) AS "allLikedUserIDs",
+         COALESCE(l."likes_count", 0) AS "likes"
+         FROM "posts" p
+         JOIN "users" u ON p."userID" = u."id"
+         LEFT JOIN (
+            SELECT "postID", COUNT(*) AS "likes_count"
+            FROM "likes"
+            GROUP BY "postID"
+         ) l ON p."id" = l."postID"
+         ORDER BY p."createdAt" DESC
+            LIMIT $2
+      `,
+      [userID, limit]
+   )
 
    return posts.rows;
 }
