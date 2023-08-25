@@ -36,7 +36,7 @@ export const getUsersBySearch = async (req, res) => {
    const { search } = req.params
    const str = search.split(',')[0]
    const userID = search.split(',')[1]
-   
+
    try {
       const users = await usersService.getUsersBySearch(str, userID)
 
@@ -84,4 +84,3 @@ export const postLike = async (req, res) => {
       res.status(500).send(error)
    }
 }
-
