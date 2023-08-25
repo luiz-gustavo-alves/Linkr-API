@@ -56,12 +56,9 @@ const deletePost = async (postID, userID) => {
         hashtagsService.deleteHashtags(resultHashtagPost, postID);
     }
 
-    await db.query(`
-    DELETE FROM resposts WHERE postID = $1;
-    DELETE FROM likes WHERE postID = $1;
-    DELETE FROM comments WHERE postID = $1;
-    `, [postID]);
-
+    await db.query(`DELETE FROM resposts WHERE postID = $1;`, [postID]);
+    await db.query(`DELETE FROM likes WHERE postID = $1;`, [postID]);
+    await db.query(`DELETE FROM comments WHERE postID = $1;`, [postID]);
 
     await db.query(
         `DELETE FROM posts
