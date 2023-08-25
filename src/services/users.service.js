@@ -120,7 +120,6 @@ async function userPosts(id) {
    if (result.rows.length === 0) {
       return await db.query(
          `SELECT * FROM users
-            FROM users
             WHERE id = $1;
          `, [id]
       );
