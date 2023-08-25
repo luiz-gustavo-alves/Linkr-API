@@ -18,9 +18,6 @@ export default async function addComments(posts, userID){
          if(c.user.id === p.user.id){
             type = "owner";
          }
-         else if (c.user.id === userID){
-            type = "logged";
-         }
          else if (followingIDs.find((id) => id == c.user.id)){
             type = "follower";
          }
