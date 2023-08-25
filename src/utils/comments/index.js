@@ -33,21 +33,7 @@ export default async function addComments(posts, userID){
             type: type
           };
       })
-      
-      /*return {
-         postID: p.postID,
-         description: p.description,
-         URL: p.URL,
-         URL_title: p.URL_title,
-         URL_description: p.URL_description,
-         URL_image: p.URL_image,
-         createdAt: p.createdAt,
-         user: p.user,
-         postOwner: p.postOwner,
-         lastLikes: p.lastLikes,
-         likes: p.likes,
-         comments: commentsFilter
-      }*/
+
       return {
         ...p,
         comments: commentsFilter

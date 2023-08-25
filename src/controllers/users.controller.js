@@ -13,8 +13,8 @@ export const countTimelinePosts = async (req, res) => {
 }
 
 export const getTimelinePosts = async (req, res) => {
-   const { userID } = res.locals
-   const { limit } = req.query
+   const { userID } = res.locals;
+   const { limit } = req.query;
 
    try {
       const posts = await usersService.getTimelinePosts(limit, userID);
@@ -27,10 +27,15 @@ export const getTimelinePosts = async (req, res) => {
 }
 
 export const getPostsByUser = async (req, res) => {
-   const { id } = req.params
+   const { id } = req.params;
+   const { userID } = res.locals
+
    try {
-      const result = await usersService.userPosts(id)
-      res.status(200).send(result.rows)
+      const result = await usersService.userPosts(id);
+
+      const resultWithComments = await addComments(result.rows, userID);
+
+      res.status(200).send(resultWithComments);
    } catch (err) {
       res.status(500).send({ message: 'Error getting hashtag posts: ' + err.message })
    }

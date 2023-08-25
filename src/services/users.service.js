@@ -62,7 +62,7 @@ const getTimelinePosts = async (limit, userID) => {
 async function userPosts(id) {
    const result = await db.query(
       `
-    SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image",
+    SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
     json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
     (
         SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
@@ -75,7 +75,15 @@ async function userPosts(id) {
         ) l3
         JOIN "users" u2 ON l3."userID" = u2."id"
     ) AS "lastLikes",
-    COALESCE(l."likes_count", 0) AS "likes" -- Adicionando o campo "likes"
+    COALESCE(l."likes_count", 0) AS "likes",
+    COALESCE(
+      (
+          SELECT array_agg(l4."userID")
+          FROM "likes" l4
+          WHERE l4."postID" = p."id"
+      ),
+      ARRAY[]::INTEGER[]
+      ) AS "allLikedUserIDs"
     FROM "posts" p
     JOIN "users" u ON p."userID" = u."id"
     LEFT JOIN (
