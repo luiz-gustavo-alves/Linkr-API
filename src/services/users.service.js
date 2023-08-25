@@ -36,7 +36,6 @@ const getTimelinePosts = async (limit, userID) => {
    let followingIDs = following.rows.map(row => row.userID_follower);
    followingIDs.push(userID);
 
-
    const posts = await db.query(
       `SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
              json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user",
@@ -178,6 +177,7 @@ const followCheck = async (following, follower) => {
 }
 
 const createComment = async (userID_owner, userID_comment, postID, comment) => {
+
    const result = await db.query(`
       INSERT INTO comments ("userID_owner", "userID_comment", "postID", "comment") 
       VALUES ($1, $2, $3, $4)

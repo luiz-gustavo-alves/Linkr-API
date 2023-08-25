@@ -18,7 +18,8 @@ import { commentsSchema } from "../schemas/comments.schema.js";
 
 const usersRouter = Router();
 
-usersRouter.get("countFollowing", authValidation, countFollowing);
+
+usersRouter.get("/countFollowing", authValidation, countFollowing);
 usersRouter.get("/countTimelinePosts", authValidation, countTimelinePosts);
 usersRouter.get("/timeline", authValidation, getTimelinePosts);
 usersRouter.get("/user/:id", authValidation, getPostsByUser);
