@@ -78,6 +78,7 @@ const getTimelinePosts = async (limit, userID) => {
 }
 
 async function userPosts(id) {
+
    const result = await db.query(
       `
     SELECT p."id" AS "postID", p."description", p."URL", p."URL_title", p."URL_description", p."URL_image", p."createdAt",
@@ -115,6 +116,14 @@ async function userPosts(id) {
     `,
       [id]
    )
+
+   if (result.rows.length === 0) {
+      return await db.query(
+         `SELECT * FROM users
+            WHERE id = $1;
+         `, [id]
+      );
+   }
 
    return result
 }
