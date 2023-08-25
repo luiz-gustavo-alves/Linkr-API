@@ -1,10 +1,26 @@
 import usersService from '../services/users.service.js'
 import jwt from 'jsonwebtoken'
+import addComments from '../utils/comments/index.js';
+
+export const countFollowing = async (req, res) => {
+
+   const { userID } = res.locals;
+
+   try {
+      const counter = await usersService.countFollowing(userID);
+      res.send({counter});
+
+   } catch (err) {
+      res.status(500).send(err.message);
+   }
+}
 
 export const countTimelinePosts = async (req, res) => {
 
+   const { userID } = res.locals;
+
    try {
-      const counter = await usersService.countTimelinePosts();
+      const counter = await usersService.countTimelinePosts(userID);
       res.send({counter});
    } catch (err) {
       res.status(500).send(err.message);
@@ -12,22 +28,29 @@ export const countTimelinePosts = async (req, res) => {
 }
 
 export const getTimelinePosts = async (req, res) => {
-   const { userID } = res.locals
-   const { limit } = req.query
+   const { userID } = res.locals;
+   const { limit } = req.query;
 
    try {
-      const posts = await usersService.getTimelinePosts(limit, userID)
-      res.send(posts)
+      const posts = await usersService.getTimelinePosts(limit, userID);
+      const postsWithComments = await addComments(posts, userID);
+
+      res.status(200).send(postsWithComments);
    } catch (err) {
       res.status(500).send(err.message)
    }
 }
 
 export const getPostsByUser = async (req, res) => {
-   const { id } = req.params
+   const { id } = req.params;
+   const { userID } = res.locals
+
    try {
-      const result = await usersService.userPosts(id)
-      res.status(200).send(result.rows)
+      const result = await usersService.userPosts(id);
+
+      const resultWithComments = await addComments(result.rows, userID);
+
+      res.status(200).send(resultWithComments);
    } catch (err) {
       res.status(500).send({ message: 'Error getting hashtag posts: ' + err.message })
    }
@@ -90,6 +113,20 @@ export const postLike = async(req, res) => {
       
    } catch (error) {
       res.status(500).send(error)
+   }
+}
+
+export const commentPost = async (req, res) => {
+
+   const { userID } = res.locals;
+   const {userID_owner, postID, comment} = req.body;
+
+   try {
+       await usersService.createComment(userID_owner, userID, postID, comment);
+       res.sendStatus(201);
+
+   } catch (err) {
+       res.send(err.message);
    }
 }
 

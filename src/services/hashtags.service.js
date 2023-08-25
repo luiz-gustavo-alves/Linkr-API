@@ -192,12 +192,18 @@ async function hashtagPosts(hashtag) {
             'URL_title', p."URL_title",
             'URL_description', p."URL_description",
             'URL_image', p."URL_image",
+            'createdAt', p."createdAt",
             'user', json_build_object(
                 'id', u."id",
                 'name', u."name",
                 'img', u."imageURL"
             ),
             'likes', COALESCE(l."likes_count", 0),
+            'allLikedUserIDs', (
+                SELECT array_agg(l4."userID")
+                FROM "likes" l4
+                WHERE l4."postID" = p."id"
+            ),
             'lastLikes', (
                 SELECT COALESCE(array_agg(u2."name") FILTER (WHERE u2."name" IS NOT NULL), ARRAY[]::VARCHAR[])
                 FROM (
