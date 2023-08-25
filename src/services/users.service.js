@@ -1,17 +1,5 @@
 import db from '../database/db.connection.js'
 
-const countFollowing = async (userID) => {
-   
-   const counter = await db.query(
-      `SELECT COUNT(*) 
-       FROM follows 
-       WHERE "userID_following" = $1`
-      , [userID]
-   );
-
-   return Number(counter.rows[0].count);
-}
-
 const countTimelinePosts = async (userID) => {
 
    const following = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1`, [userID]);
@@ -26,7 +14,7 @@ const countTimelinePosts = async (userID) => {
       `, [followingIDs]
    );
 
-   return Number(counter.rows[0].count);
+   return Number(counter.rows[0].count)
 }
 
 const getTimelinePosts = async (limit, userID) => {
@@ -119,10 +107,26 @@ async function userPosts(id) {
    return result
 }
 
-const getUsersBySearch = async (query) => {
+const getUsersBySearch = async (query, userID) => {
    const result = await db.query(
-      `SELECT u.id, u.name, u."imageURL" FROM users as u WHERE name ILIKE $1 LIMIT 2`,
-      [`${query}%`]
+      `SELECT DISTINCT
+      u.id,
+      u.name,
+      u."imageURL",
+      CASE WHEN f."userID_follower" IS NOT NULL THEN true ELSE false END as "isFollower"
+  FROM
+      users u
+  LEFT JOIN
+      follows f ON u.id = f."userID_follower" AND f."userID_following" = $1
+  WHERE
+      u.name ILIKE $2
+  ORDER BY
+      "isFollower" DESC
+  LIMIT 2;
+  
+  
+  `,
+      [userID, `${query}%`]
    )
 
    return result
@@ -136,44 +140,52 @@ const postLike = async ({ userID, postID }) => {
 
    if (liked.rows[0]) {
       await db.query(`DELETE FROM likes WHERE id = $1`, [liked.rows[0].id])
-      return { liked: false }
+
+      const currentLikes = await db.query(`SELECT "postID" FROM likes WHERE "postID" = $1`, [
+         postID
+      ])
+
+      return { liked: false, currentLikes: currentLikes.rowCount }
    }
 
    await db.query(`INSERT INTO likes ("userID", "postID") VALUES ($1, $2)`, [userID, postID])
 
-   return { liked: true }
+   const currentLikes = await db.query(`SELECT "postID" FROM likes WHERE "postID" = $1`, [postID])
+
+   return { liked: true, currentLikes: currentLikes.rowCount }
 }
 
 const follow = async (following, follower) => {
+   const followed = await db.query(
+      `SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`,
+      [following, follower]
+   )
 
-    const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
-        following,
-        follower
-    ]);
-  
-     if (followed.rows[0]) {
-        await db.query(`DELETE FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
-            following,
-            follower
-        ])
-        return { followed: false }
-     };
-  
-     await db.query(`INSERT INTO follows ("userID_following", "userID_follower") VALUES ($1, $2)`, [following, follower]);
-  
-     return { followed: true };
+   if (followed.rows[0]) {
+      await db.query(
+         `DELETE FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`,
+         [following, follower]
+      )
+      return { followed: false }
+   }
+
+   await db.query(`INSERT INTO follows ("userID_following", "userID_follower") VALUES ($1, $2)`, [
+      following,
+      follower
+   ])
+
+   return { followed: true }
 }
 
 const followCheck = async (following, follower) => {
-
-   const followed = await db.query(`SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`, [
-       following,
-       follower
-   ]);
-    if (followed.rows[0]) {
-    return { followed: true };
-    };
-    return { followed: false }
+   const followed = await db.query(
+      `SELECT * FROM follows WHERE "userID_following" = $1 AND "userID_follower" = $2`,
+      [following, follower]
+   )
+   if (followed.rows[0]) {
+      return { followed: true }
+   }
+   return { followed: false }
 }
 
 const createComment = async (userID_owner, userID_comment, postID, comment) => {
