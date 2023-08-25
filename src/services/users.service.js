@@ -119,7 +119,9 @@ async function userPosts(id) {
 
    if (result.rows.length === 0) {
       return await db.query(
-         `SELECT * FROM users
+         `SELECT 
+            json_build_object('id', u."id", 'name', u."name", 'img', u."imageURL") AS "user"
+            FROM users
             WHERE id = $1;
          `, [id]
       );
