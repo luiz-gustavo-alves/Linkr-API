@@ -33,7 +33,15 @@ const getTimelinePosts = async (limit, userID) => {
                 ) l3
                 JOIN "users" u2 ON l3."userID" = u2."id"
              ) AS "lastLikes",
-             COALESCE(l."likes_count", 0) AS "likes"
+             COALESCE(l."likes_count", 0) AS "likes",
+             COALESCE(
+               (
+                   SELECT array_agg(l4."userID")
+                   FROM "likes" l4
+                   WHERE l4."postID" = p."id"
+               ),
+               ARRAY[]::INTEGER[]
+               ) AS "allLikedUserIDs"
        FROM "posts" p
        JOIN "users" u ON p."userID" = u."id"
        LEFT JOIN (

@@ -34,7 +34,7 @@ export default async function addComments(posts, userID){
           };
       })
       
-      return {
+      /*return {
          postID: p.postID,
          description: p.description,
          URL: p.URL,
@@ -47,6 +47,10 @@ export default async function addComments(posts, userID){
          lastLikes: p.lastLikes,
          likes: p.likes,
          comments: commentsFilter
+      }*/
+      return {
+        ...p,
+        comments: commentsFilter
       }
    })
    return postsWithComments;
