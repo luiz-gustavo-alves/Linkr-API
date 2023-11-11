@@ -139,8 +139,9 @@ Projeto Full Stack para construção de uma rede social de compartilhamento de l
   - **PostsRouter**:
     - ![](https://place-hold.it/80x20/26ec48/ffffff?text=POST&fontsize=16) **/create-post**
 
-## Deploy Front-End do Projeto 💻
+## Links 💻
 
-| Plataforma | Deploy |
+| Descrição | Link |
 | --- | --- |
-| <a href="https://vercel.com/"><img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" /></a> | https://linkr-cyan.vercel.app/ 
+| Frontend | https://github.com/luiz-gustavo-alves/Linkr-Front
+| Deploy |  https://linkr-cyan.vercel.app/
